@@ -1,0 +1,48 @@
+name: api
+services:
+    web:
+        container_name: api-web
+        image: webdevops/php-nginx-dev:8.3
+        working_dir: /app
+        ports:
+            - 8000:443
+        volumes:
+            - ./.docker/nginx/default.conf:/opt/docker/etc/nginx/vhost.conf:ro
+            - ./.docker/certs:/opt/docker/etc/nginx/ssl:ro
+            - ./api:/app
+        environment:
+            WEB_DOCUMENT_ROOT: /app/public
+            PHP_FPM_ENABLED: 1
+        restart: always
+
+    db:
+        container_name: api-db
+        image: mariadb:10.4
+        ports:
+            - ${DB_PORT}:3306
+        volumes:
+            - mysql_data:/var/lib/mysql
+        environment:
+            - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
+            - MARIADB_DATABASE=${DB_DATABASE}
+        restart: unless-stopped
+
+    node:
+        container_name: frontend-node
+        image: node:20-alpine
+        working_dir: /app
+        user: 1000:1000
+        ports:
+            - 8080:5173
+        environment:
+            - NODE_ENV=development
+            # - HOST=0.0.0.0
+        volumes:
+            - ./frontend:/app
+            # - /app/node_modules
+        command: sh -c "npm install && npm run build && npm run dev"
+        restart: unless-stopped
+
+volumes:
+    mysql_data:
+        driver: local

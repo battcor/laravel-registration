@@ -60,6 +60,8 @@ cd registration/
 cp api/.env.example api/.env
 ln -s api/.env .env
 docker compose up --build
+docker compose exec web composer install
+docker compose exec web php artisan migrate --seed
 ```
 
 Go to http://localhost:8080/
